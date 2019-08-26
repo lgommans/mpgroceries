@@ -1,0 +1,29 @@
+Wishlist:
+
+- Assign items to store(s) where you typically buy it and group/color by that.
+
+- Testing for XSS is TODO.
+
+- CSRF protection. At least there is anti-CSRF on the logout :D
+  Hmm, so I guess that means you can delete a user's data, but you can't
+  "vaccinate" users from other CSRF attacks by means of a CSRF attack... maybe
+  I should temporarily remove this security feature :P
+
+- Unify style, put css/js in files
+
+
+Notes:
+
+- Global PHP variables should be underscore-prefixed. I only recently started
+  doing this and only bothered to change the $_ok and config.php variables
+  everywhere. There may be others, beware.
+    - $db is an exception. I use this so often that: (1) it would be annoying
+      to prefix, and (2) anyone even slightly familiar with the code will soon
+      find it obvious and does not need to be reminded that it is a global.
+
+- Category ID -1 is special and may never exist or belong to any uid. It just
+  means 'uncategorized'
+
+- There are probably still encoding issues throughout the code, though I think
+  I squashed the worst ones. It should not break on crème fraîche... mostly.
+
