@@ -11,6 +11,6 @@ $_dbpass = 'toor';
 $_dbname = 'mpgroceries';
 
 $_pwd_mem = 32768; // In KB it seems
-$_pwd_threads = 4; // N° available CPU cores
+$_pwd_threads = 4; // Number of CPU cores to use
 $_pwd_time = 8;  // Hashing slowness. Can be set lower when more memory is used.
 

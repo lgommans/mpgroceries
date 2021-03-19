@@ -9,6 +9,10 @@
 		exit;
 	}
 
+	if (isset($_POST['store'])) {
+		$_GET['store'] = $_POST['store'];
+	}
+
 	if (!isset($_GET['store'])) {
 		echo "<input type=button onclick=\"location='./';\" value=\"Back to grocery list\"><br><br>";
 		$result = $db->query("SELECT id, name FROM stores WHERE uid = $_SESSION[uid] ORDER BY id DESC") or die('Database error 5182');
@@ -203,8 +207,31 @@
 				p {
 					max-width: 660px;
 				}
+
+				input[type="number"] {
+					width: 50px;
+				}
 			</style>
 
+			<strong>In what order do you walk past your categories in this store?</strong>
+			<form method=post action='?map&catorder'>
+				<input type=hidden name=store value=<?php echo $store; ?>>
+				<?php
+					$result = $db->query("SELECT c.id, c.name, (SELECT cs.priority FROM categories_stores cs WHERE cs.uid = $_SESSION[uid] AND cs.storeid = $store AND cs.categoryid = c.id) AS priority
+						FROM categories c
+						WHERE c.uid = $_SESSION[uid]
+						ORDER BY priority, c.name") or die('Database error 488243');
+					while ($row = $result->fetch_row()) {
+						if ($row[2] === NULL) {
+							$row[2] = 50;
+						}
+						echo "<input type=number name='catid$row[0]' value='$row[2]'> " . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . "<br>\n";
+					}
+				?>
+				<input type=submit value=Save>
+			</form>
+
+			<br>
 			<strong>Which items do you buy in this store?</strong>
 			<table><tr><th>Item</th><th>Status</th></tr>
 		<?php 
@@ -312,61 +339,14 @@ Your personal shopping list:
 		echo "<div onclick='if(a==this)parentNode.removeChild(this);a=this;' style='margin-top: 20px; background-color:rgb($r, $r, $r);'>$item</div>\n";
 	}
 ?>
+<script src='res/common.js'></script>
 <script>
-	function $(sel) { return document.querySelector(sel); }
-	function $$(sel) { return document.querySelectorAll(sel); }
-
-	function modulo(divident, divisor) {
-		// Via http://stackoverflow.com/a/2772402/1201863
-		// cc by-sa 3.0 with attribution required
-		divident = divident.toString();
-		divisor = divisor.toString();
-		var cDivident = '';
-		var cRest = '';
-
-		for (var i in divident) {
-			var cChar = divident[i];
-			var cOperator = cRest + '' + cDivident + '' + cChar;
-
-			if (cOperator < parseInt(divisor)) {
-				cDivident += '' + cChar;
-			}
-			else {
-				cRest = cOperator % divisor;
-				if (cRest == 0) {
-					cRest = '';
-				}
-				cDivident = '';
-			}
-
-		}
-		cRest += '' + cDivident;
-		if (cRest == '') {
-			cRest = 0;
-		}
-		return cRest;
-	}
-
-	function bkdrHash(str) {
-		var seed = 131;
-		var hash = 0;
-		for (var i in str) {
-			// Original implementations used uint, so let's make sure our output falls in the same range and do a modulo.
-			// Unfortunately, Javascript is not python and silently fails at modulo on large numbers.
-			// The custom modulo() function is also not perfect, still failing at very large numbers, but it *probably* works for this use case. More testing is needed to be certain.
-			hash = modulo((hash * seed) + str.charCodeAt(i), Math.pow(2, 32));
-		}
-		return hash;
-	}
-
-	function CSSHSLHash(str, saturation, lightness) {
-		return 'hsl(' + modulo(bkdrHash(str.toLowerCase()), 360) + ', ' + saturation + '%, ' + lightness + '%)';
-	}
-
 	var els = $$("div");
 	for (var i in els) {
 		els[i].style.backgroundColor = CSSHSLHash(els[i].innerHTML, 100, 85);
 	}
 
 	a = 1;
+
+	document.title = 'StoreSort - ' + document.title;
 </script>

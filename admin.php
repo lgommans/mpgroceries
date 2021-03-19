@@ -114,6 +114,7 @@ $secretUrl = str_replace('?' . $_SERVER['QUERY_STRING'], '', $url) . '?secret=' 
 		location = '?admin&rmcat=' + id;
 	}
 
+	document.title = 'Manage - ' + document.title
 </script>
 <input type=button value="Back to list" onclick='location="./";'><br><br>
 Your list's name: <?php echo htmlentities($_SESSION['username'], ENT_COMPAT | ENT_HTML401, 'UTF-8'); ?><br>
@@ -169,10 +170,20 @@ while ($row = $result->fetch_row()) {
 
 <br><br>
 The number is how frequently it was used and decides the order in which it appears in the frequently used items.<br>
-The right-hand buttons are for zeroing out the count, merging the item into another, and removing the item, respectively.
-<table cellspacing=0><tr><th colspan=2>Items</th></tr>
+The right-hand buttons are for zeroing out the count, merging the item into another, and removing the item, respectively.<br>
+<?php if (!isset($_GET['onlyuncat'])) { ?>
+	(<a href='?admin&onlyuncat'>Show only Uncategorized</a>)
+<?php } ?>
+<table id=items cellspacing=0><tr><th colspan=2>Items</th></tr>
 <?php 
-$result = $db->query("SELECT item, frequency, id, categoryid FROM popularitems WHERE uid = $_SESSION[uid] ORDER BY frequency DESC, item") or die('Database error 142505');
+$onlyuncat = '';
+$urlonlyuncat = '';
+if (isset($_GET['onlyuncat'])) {
+	$onlyuncat = 'AND categoryid = -1';
+	$urlonlyuncat = '&onlyuncat';
+}
+
+$result = $db->query("SELECT item, frequency, id, categoryid FROM popularitems WHERE uid = $_SESSION[uid] $onlyuncat ORDER BY frequency DESC, item") or die('Database error 142505');
 if ($result->num_rows == 0) {
 	echo '<tr><td colspan=2>(no items yet)</td></tr>';
 }
@@ -182,7 +193,7 @@ while ($row = $result->fetch_row()) {
 		. "<input type=button class=onecharbtn onclick='resetCounter(\"$name\");' value=0>"
 		. "<input type=button class=onecharbtn onclick=\"merge(&quot;$name&quot;);\" value=+>"
 		. "<input type=button class=onecharbtn onclick='rm(\"$row[2]\");' value=x></td></tr>"
-		. "<tr><td class=noline><select onchange='location=\"?admin&setCategory=\"+value+\"&itemid=$row[2]\";'>";
+		. "<tr><td class=noline><select onchange='location=\"?admin&setCategory=\"+value+\"&itemid=$row[2]$urlonlyuncat#items\";'>";
 	foreach ($categories as $id=>$category) {
 		$selected = ($id == $row[3] ? ' selected' : '');
 		echo "<option value=$id$selected>" . htmlentities($category, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</option>';

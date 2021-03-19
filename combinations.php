@@ -3,6 +3,9 @@
 
 	?>
 		<a href="./">Return to grocery list</a>
+		<script>
+			document.title = 'Combinations - ' + document.title;
+		</script>
 		<br><br><br>
 	<?php
 

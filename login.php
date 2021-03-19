@@ -75,7 +75,7 @@ if (isset($_POST['existingusername'])) {
 			exit;
 		}
 	}
-	echo "<b style='color:red'>Incorrect username or password</b><br><br>";
+	echo "<b style='color:red'>Incorrect list name or password</b><br><br>";
 }
 
 ?>
@@ -103,4 +103,8 @@ Or create a new list (step 1 of 1):
 	Repeat password: <input type=password name=pwd2> (optional, but if you enter this then it will be checked)<br>
 	<input type=submit value='Create list'>
 </form>
+
+<script>
+	document.title = 'Login - ' + document.title;
+</script>
 

@@ -143,15 +143,18 @@
 	<input type=submit value='Add items'>
 </form>
 <br>
+<script>
+	document.title = 'Recipes - ' + document.title
+</script>
 <?php
 	$result = $db->query("SELECT id, name FROM recipes WHERE userid = $_SESSION[uid]") or die('Database error 22998');
-	echo "Showing $result->num_rows existing recipes.<table border=1>";
+	echo "Showing $result->num_rows existing recipes.<table border=1 cellpadding=5>";
 	echo '<tr><th>Name</th><th></th><th></th><th></th></tr>';
 	while ($row = $result->fetch_row()) {
 		echo "<form method=post accept-charset='utf-8'><input type=hidden name=recipeid value=$row[0]>";
 		echo '<tr><td>' . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</td>'
-			. '<td><input type=submit name=action value="Add to groceries"></td>'
-			. '<td><input type=submit name=action value="View/edit"></td>'
+			. '<td><input type=submit name=action value="Open recipe"></td>'
+			. '<td><input type=submit name=action value="Add to list"></td>'
 			. '<td><input type=submit name=action value="Delete"></td></tr></form>';
 	}
 

@@ -15,6 +15,21 @@ if ($_SESSION['loggedin'] === 'yes') {
 			exit;
 		}
 
+		if (isset($_GET['catorder'])) {
+			$store = intval($_POST['store']);
+
+			foreach ($_POST as $key=>$val) {
+				if (substr($key, 0, 5) == 'catid') {
+					$catid = intval(substr($key, 5));
+					$prio = floatval($val);
+					$db->query("INSERT INTO categories_stores (priority, storeid, categoryid, uid) VALUES($prio, $store, $catid, $_SESSION[uid])
+						ON DUPLICATE KEY UPDATE priority = $prio") or die('Database error 737594');
+				}
+			}
+			header('Location: ?map&store=' . $store);
+			exit;
+		}
+
 		if (isset($_GET['dontPurchase'])) {
 			$itemstoreid = intval($_GET['dontPurchase']);
 			$db->query("DELETE FROM item_stores WHERE uid = $_SESSION[uid] AND id = $itemstoreid") or die('Database error 6446');
