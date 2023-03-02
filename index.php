@@ -15,6 +15,7 @@
 <meta charset='utf-8'/>
 <title>Multiplayer Grocery List</title>
 <meta name=viewport content="width=200, initial-scale=1"/>
+<link rel='icon' href='res/logo.png' type='image/png'>
 
 <?php 
 	if ($_SESSION['loggedin'] !== 'yes' || isset($_GET['logout'])) {
