@@ -207,7 +207,13 @@
 			confirmRemove(item);
 		}
 
-		$("#listDisplay").appendChild(itemDiv);
+		if (sendUpdate) {
+			// if we need to send an update, we're also likely to want it at the top
+			$("#listDisplay").insertBefore(itemDiv, $("#listDisplay").firstChild);
+		}
+		else {
+			$("#listDisplay").appendChild(itemDiv);
+		}
 	}
 
 	function escapeHtml(str) {
