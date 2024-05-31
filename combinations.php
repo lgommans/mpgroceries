@@ -6,7 +6,7 @@
 		<script>
 			document.title = 'Combinations - ' + document.title;
 		</script>
-		<br><br><br>
+		<br><br>(todo: make this page load 10 items ahead and ajax the answers...)<br><br>
 	<?php
 
 	// database info:
@@ -39,7 +39,7 @@
 		list($itemid, $name) = $unknownItems->fetch_row();
 		print("<form method=post action='?combinations'>");
 		print("<input type=hidden name=itemid value=$itemid>");
-		print("Is/are <strong>" . htmlspecialchars($name, ENT_COMPAT | ENT_HTML401, 'UTF-8') . "</strong> edible?<br>Or rather, can you combine it with <i>anything</i>?<br>");
+		print("Is/are <strong>" . htmlescape($name) . "</strong> edible?<br>Or rather, can you combine it with <i>anything</i>?<br>");
 		print("<input type=submit name=edible value=Yes>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 		print("<input type=submit name=edible value=No>");
 		print("</form>");
@@ -84,7 +84,7 @@
 				AND pi1.id != pi2.id
 				AND c.answer != 1
 			ORDER BY ISNULL(c.answer)
-		") or die('Database error 813519: '.$db->error);
+		") or die('Database error 812599: '.$db->error);
 	}
 
 	if ($unmatchedItems->num_rows > 0) {
@@ -92,7 +92,7 @@
 		print("<form method=post action='?combinations'>");
 		print("<input type=hidden name=pi1id value=$pi1id>");
 		print("<input type=hidden name=pi2id value=$pi2id>");
-		print("Are <strong>" . htmlspecialchars($pi1name, ENT_COMPAT | ENT_HTML401, 'UTF-8') . "</strong> and <strong>" . htmlspecialchars($pi2name, ENT_COMPAT | ENT_HTML401, 'UTF-8') . "</strong> a good combination?<br>");
+		print("Are <strong>" . htmlescape($pi1name) . "</strong> and <strong>" . htmlescape($pi2name) . "</strong> a good combination?<br>");
 		print("<input type=submit name=answer value=Yes> ");
 		print("<input type=submit name=answer value='Absolutely not'> ");
 		print("<input type=submit name=answer value='Maybe (skip for now)'>");
@@ -108,12 +108,13 @@
 			ON pi1.id = c.pi1
 		INNER JOIN popularitems pi2
 			ON pi2.id = c.pi2
-		WHERE c.uid = $_SESSION[uid]
+		WHERE c.answer = 2
+			AND c.uid = $_SESSION[uid]
 			AND pi1.uid = $_SESSION[uid]
 			AND pi2.uid = $_SESSION[uid]
 		ORDER BY RAND()
 		") or die('Database error 1213134');
 	while ($row = $goodideas->fetch_row()) {
-		print("Idea: " . htmlspecialchars($row[0], ENT_COMPAT | ENT_HTML401, 'UTF-8') . " and " . htmlspecialchars($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . "!<br>");
+		print("Idea: " . htmlescape($row[0]) . " and " . htmlescape($row[1]) . "!<br>");
 	}
 
