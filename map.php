@@ -101,8 +101,8 @@
 		}
 		if ( ! $noimage) {
 			$result = $result->fetch_row();
-			$result[0] = mb_convert_encoding($result[0], 'ISO-8859-1');
-			echo "Where is '" . htmlspecialchars($result[0], ENT_COMPAT | ENT_HTML401, 'ISO-8859-1') . "' in this store?<br>";
+			$result[0] = mb_convert_encoding($result[0], 'ISO-8859-1'); // TODO if we ever work on this again, please check why we don't use UTF-8 here instead
+			echo "Where is '" . htmlspecialchars($result[0], ENT_COMPAT | ENT_HTML401 | ENT_QUOTES, 'ISO-8859-1') . "' in this store?<br>";
 				?>
 					<input type=button value='Not available in this store.' onclick='$("#loc").value = "n/a";'><br>
 					<img src="?map&storelayout=<?php echo $store; ?>" id=map><br>
@@ -225,7 +225,7 @@
 						if ($row[2] === NULL) {
 							$row[2] = 50;
 						}
-						echo "<input type=number name='catid$row[0]' value='$row[2]'> " . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . "<br>\n";
+						echo "<input type=number name='catid$row[0]' value='$row[2]'> " . htmlescape($row[1]) . "<br>\n";
 					}
 				?>
 				<input type=submit value=Save>
@@ -248,7 +248,7 @@
 					)
 			ORDER BY pi.item") or die('Database error 414929449');
 		while ($row = $result->fetch_row()) {
-			echo '<tr><td>' . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</td>'
+			echo '<tr><td>' . htmlescape($row[1]) . '</td>'
 				. "<td><span>No</span> <input type=button class=onecharbtn value=+ onclick='togglePurchase($store, $row[0], this);'></td></tr>";
 		}
 
@@ -260,7 +260,7 @@
 				AND i_s.storeid = $store
 			ORDER BY pi.item") or die('Database error 72747419');
 		while ($row = $result->fetch_row()) {
-			echo '<tr><td>' . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</td>'
+			echo '<tr><td>' . htmlescape($row[1]) . '</td>'
 				. "<td><span>Yes</span> <input type=button class=onecharbtn value=- onclick='togglePurchase($store, $row[0], this);'></td></tr>";
 		}
 		echo '</table>';

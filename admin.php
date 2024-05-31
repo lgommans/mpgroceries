@@ -52,7 +52,7 @@ if (isset($_GET['merge'])) {
 	if (!isset($_GET['target'])) {
 		?>
 		<form>
-			Selected item: <input name=merge value="<?php echo htmlspecialchars($_GET['merge'], ENT_COMPAT | ENT_HTML401, 'UTF-8'); ?>"><br>
+			Selected item: <input name=merge value="<?php echo htmlescape($_GET['merge']); ?>"><br>
 			Merge into which item: <input name=target><br>
 			<input type=submit name=admin value=Merge>
 		</form>
@@ -117,7 +117,7 @@ $secretUrl = str_replace('?' . $_SERVER['QUERY_STRING'], '', $url) . '?secret=' 
 	document.title = 'Manage - ' + document.title
 </script>
 <input type=button value="Back to list" onclick='location="./";'><br><br>
-Your list's name: <?php echo htmlentities($_SESSION['username'], ENT_COMPAT | ENT_HTML401, 'UTF-8'); ?><br>
+Your list's name: <?php echo htmlescape($_SESSION['username']); ?><br>
 Link to login without needing the password: <a href="<?php echo $secretUrl; ?>"><?php echo $secretUrl; ?></a><br>
 <input type=button value="Reset secret link" onclick='location="?admin&resetSecret";'>
 <input type=button value="What is this secret link for?" onclick='helpSecret(this);'><span id=helpSecretText></span><br>
@@ -160,7 +160,7 @@ what you need from this section. Example categories could be "Cheeses" and
 $result = $db->query("SELECT id, name FROM categories WHERE uid = $_SESSION[uid] ORDER BY name") or die('Database error 810491');
 while ($row = $result->fetch_row()) {
 	$categories[$row[0]] = $row[1];
-	$name = htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8');
+	$name = htmlescape($row[1]);
 	echo "<tr><td>$name</td><td><input type=button class=onecharbtn onclick=\"rmcat($row[0]);\" value=x></td></tr>";
 }
 ?>
@@ -188,7 +188,7 @@ if ($result->num_rows == 0) {
 	echo '<tr><td colspan=2>(no items yet)</td></tr>';
 }
 while ($row = $result->fetch_row()) {
-	$name = htmlentities($row[0], ENT_COMPAT | ENT_HTML401, 'UTF-8');
+	$name = htmlescape($row[0]);
 	echo "<tr><td>$name</td><td width=130>$row[1]"
 		. "<input type=button class=onecharbtn onclick='resetCounter(\"$name\");' value=0>"
 		. "<input type=button class=onecharbtn onclick=\"merge(&quot;$name&quot;);\" value=+>"
@@ -196,7 +196,7 @@ while ($row = $result->fetch_row()) {
 		. "<tr><td class=noline><select onchange='location=\"?admin&setCategory=\"+value+\"&itemid=$row[2]$urlonlyuncat#items\";'>";
 	foreach ($categories as $id=>$category) {
 		$selected = ($id == $row[3] ? ' selected' : '');
-		echo "<option value=$id$selected>" . htmlentities($category, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</option>';
+		echo "<option value=$id$selected>" . htmlescape($category) . '</option>';
 	}
 	$selected = ($row[3] == -1 ? ' selected' : '');
 	echo "<option value=-1$selected>Uncategorized</option>";

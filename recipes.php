@@ -4,7 +4,7 @@
 	$autofocus = false;
 
 	function bbcode($input) {
-		$input = htmlentities($input, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+		$input = htmlescape($input);
 		return nl2br(
 			str_replace("\n</ul>", '</ul>',
 			str_replace("\n</ol>", '</ol>',
@@ -32,7 +32,7 @@
 	if ($_POST['action'] == 'addrecipe') {
 		$db->query('INSERT INTO recipes (userid, name, instructions) VALUES(' . $_SESSION['uid'] . ', "' . $db->escape_string($_POST['name']) . '", "")');
 		$_POST['recipeid'] = $db->insert_id;
-		$_POST['action'] = 'View/edit';
+		$_POST['action'] = 'Open recipe';
 	}
 
 	if (isset($_POST['recipeid'])) {
@@ -66,7 +66,7 @@
 			echo '<strong>Deleted.</strong>';
 		}
 
-		if ($_POST['action'] == 'Add to groceries') {
+		if ($_POST['action'] == 'Add to list') {
 			$result = $db->query("SELECT item, amount, unit FROM `recipe-item` WHERE recipeid = $recipeid") or die('Database error 19880');
 			while ($row = $result->fetch_row()) {
 				$item = $db->escape_string($row[0]);
@@ -78,7 +78,7 @@
 			}
 			$changeId = $db->insert_id;
 			$db->query("UPDATE users SET lastid = $changeId WHERE id = $_SESSION[uid]") or die('Database error 58489');
-			echo '<strong>Added ' . htmlentities($recipename) . '.</strong>';
+			echo '<strong>Added ' . htmlescape($recipename) . '.</strong>';
 		}
 
 		if ($_POST['action'] == 'updaterecipe') {
@@ -98,10 +98,10 @@
 			echo '<strong>Saved.</strong>';
 			$autofocus = true;
 
-			$_POST['action'] = 'View/edit';
+			$_POST['action'] = 'Open recipe';
 		}
 
-		if ($_POST['action'] == 'View/edit') {
+		if ($_POST['action'] == 'Open recipe') {
 			$result = $db->query("SELECT name, instructions FROM recipes WHERE id = $recipeid") or die('Database error 15994');
 			list($name, $instructions) = $result->fetch_row();
 			?>
@@ -110,7 +110,7 @@
 				<form method=post accept-charset='utf-8'>
 					<input type=hidden name=recipeid value=<?php echo $recipeid; ?>>
 					<input type=hidden name=action value='updaterecipe'>
-					Recipe: <input maxlength=255 name=name value="<?php echo htmlentities($name, ENT_COMPAT | ENT_HTML401, 'UTF-8'); ?>"><br>
+					Recipe: <input maxlength=255 name=name value="<?php echo htmlescape($name); ?>"><br>
 					Instructions:<br>
 					<?php
 						echo '<span style="display: inline-block; background-color: #eee;">' . bbcode($instructions) . '</span>';
@@ -119,8 +119,8 @@
 						$result = $db->query("SELECT item, amount, unit FROM `recipe-item` WHERE recipeid = $recipeid") or die('Database error 22363');
 						while ($row = $result->fetch_row()) {
 							echo '<input name="amount[]" type=number placeholder=500 style="width: 70px;" value=' . $row[1] . '> '
-								. '<input name="unit[]" size=4 value="' . htmlentities($row[2], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"> '
-								. '<input name="item[]" value="' . htmlentities($row[0], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"><br>';
+								. '<input name="unit[]" size=4 value="' . htmlescape($row[2]) . '"> '
+								. '<input name="item[]" value="' . htmlescape($row[0]) . '"><br>';
 						}
 						echo '<input name="amount[]" type=number placeholder=500 style="width: 70px;"> '
 							. '<input name="unit[]" size=4 placeholder=grams> <input placeholder=flour ' . ($autofocus ? 'autofocus' : '') . ' name="item[]">';
@@ -128,7 +128,7 @@
 					<br><br>
 					Edit instructions:<br>
 					(You can use [b], [i], [u], [ul], [ol], [li].)<br>
-					<textarea name=instructions cols=80 rows=20><?php echo htmlentities($instructions, ENT_COMPAT | ENT_HTML401, 'UTF-8'); ?></textarea><br>
+					<textarea name=instructions cols=80 rows=20><?php echo htmlescape($instructions); ?></textarea><br>
 					<input type=submit value=Save>
 				</form>
 			<?php
@@ -152,7 +152,7 @@
 	echo '<tr><th>Name</th><th></th><th></th><th></th></tr>';
 	while ($row = $result->fetch_row()) {
 		echo "<form method=post accept-charset='utf-8'><input type=hidden name=recipeid value=$row[0]>";
-		echo '<tr><td>' . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</td>'
+		echo '<tr><td>' . htmlescape($row[1]) . '</td>'
 			. '<td><input type=submit name=action value="Open recipe"></td>'
 			. '<td><input type=submit name=action value="Add to list"></td>'
 			. '<td><input type=submit name=action value="Delete"></td></tr></form>';

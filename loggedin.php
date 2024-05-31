@@ -45,7 +45,7 @@
 				}
 				echo '<select id="selectStore"><option value="-1">' . $filterorcategorize . '</option>';
 				while ($row = $result->fetch_row()) {
-					echo "<option value=$row[0]>" . htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8') . '</option>';
+					echo "<option value=$row[0]>" . htmlescape($row[1]) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -206,6 +206,7 @@
 		itemDiv.onclick = function() {
 			confirmRemove(item);
 		}
+
 		$("#listDisplay").appendChild(itemDiv);
 	}
 
@@ -506,7 +507,7 @@
 		<?php
 			//$result = $db->query("SELECT id, name FROM categories WHERE uid = $_SESSION[uid]") or die('Database error 2423940');
 			//while ($row = $result->fetch_row()) {
-				//$row[1] = htmlentities($row[1], ENT_COMPAT | ENT_HTML401, 'UTF-8');
+				//$row[1] = htmlescape($row[1]);
 				//echo ",'$row[0]': '$row[1]'";
 			//}
 		?>

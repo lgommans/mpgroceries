@@ -7,6 +7,10 @@ function checkCSRF($which) {
 	}
 }
 
+function htmlescape($input) {
+	return htmlentities($input, ENT_COMPAT | ENT_HTML401 | ENT_QUOTES, 'UTF-8');
+}
+
 function splitAmount($amount) {
 	if (substr_count($amount, ' ') === 1) {
 		return explode(' ', $amount);
