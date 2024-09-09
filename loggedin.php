@@ -258,8 +258,9 @@
 
 					selectedOperationsDiv = newDiv();
 					var amount = tmpContents.substring(6, tmpContents.indexOf('</span>'));
-					selectedOperationsDiv.innerHTML = '<br>Amount: <input id=amount value="' + escapeHtml(amount) + '" size=3>'
-						+ '<input type=button value=v onclick="updateAmount(' + i + ', \'' + btoa(item) + '\');">';
+					selectedOperationsDiv.innerHTML = '<br><button onclick="tapTimeoutFunction();removeItem(atob(\'' + btoa(item) + '\'));">&#x1F441;</button> &middot; '
+						+ 'Amount: <input id=amount value="' + escapeHtml(amount) + '" size=3>'
+						+ '<input type=button value="&#x2713;" onclick="updateAmount(' + i + ', \'' + btoa(item) + '\');">';
 					el.parentNode.insertBefore(selectedOperationsDiv, el.nextSibling);
 				}
 			});
@@ -304,7 +305,7 @@
 	}
 
 	function removeItem(item) {
-		// Never send an update: the event handler for removing items already does that. If this function is called, it was incoming.
+		// Never send an update: the event handler for removing items already does that. If this function is called, it was either an incoming update or a local hide request.
 		list = []; // You can't remove indices from an array, so we need to rebuild the array
 		$$('.item').forEach(function(el) {
 			if (stripAmount(el.innerHTML) == escapePureHtml(item)) {
