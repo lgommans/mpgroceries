@@ -24,7 +24,7 @@ if (isset($_GET['setCategory'])) {
 	$categoryid = intval($_GET['setCategory']);
 	$db->query("UPDATE popularitems SET categoryid = $categoryid WHERE id = $itemid AND uid = $_SESSION[uid]") or die('Database error 5820940');
 
-	header('Location: ?admin');
+	header('Location: ?admin' . (isset($_GET['onlyuncat']) ? '&onlyuncat' : ''));
 	exit;
 }
 
