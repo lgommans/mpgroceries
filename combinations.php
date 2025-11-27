@@ -47,6 +47,13 @@
 
 	print('<br><br><br>');
 
+	// if we're just picking edibleness, skip the slow part of this unrelated query (should find a faster method..)
+	if (isset($_POST['edible'])) {
+		$goodOrdering = '';
+	}
+	else {
+		$goodOrdering = 'ORDER BY RAND() * pi1.frequency + RAND() * pi2.frequency DESC';
+	}
 	$unmatchedItems = $db->query("
 		SELECT pi1.id, pi1.item, pi2.id, pi2.item
 		FROM popularitems pi1
@@ -61,10 +68,11 @@
 			) = 0
 			AND pi1.uid = $_SESSION[uid]
 			AND pi2.uid = $_SESSION[uid]
-			AND pi1.edible != 0 
-			AND pi2.edible != 0
+			AND pi1.edible > 0
+			AND pi2.edible > 0
 			AND pi1.id != pi2.id
-		ORDER BY RAND() * pi1.frequency + RAND() * pi2.frequency DESC
+		$goodOrdering
+		LIMIT 1
 	") or die('Database error 813519: '.$db->error);
 
 	if ($unmatchedItems->num_rows == 0) {
@@ -84,6 +92,7 @@
 				AND pi1.id != pi2.id
 				AND c.answer != 1
 			ORDER BY ISNULL(c.answer)
+			LIMIT 1
 		") or die('Database error 812599: '.$db->error);
 	}
 
