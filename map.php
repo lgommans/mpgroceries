@@ -18,7 +18,9 @@
 		$result = $db->query("SELECT id, name FROM stores WHERE uid = $_SESSION[uid] ORDER BY id DESC") or die('Database error 5182');
 		echo 'Select a store:<br><select id=x onchange="selectedStore(this.value);">';
 		while ($row = $result->fetch_row()) {
-			echo "<option value=$row[0]>$row[1]</option>";
+			$storeName_html = htmlescape($row[1]);
+			$id_int = intval($row[0]);
+			echo "<option value=$id_int>$storeName_html</option>";
 		}
 		echo "<option value=-1>New store</option>";
 		echo "</select><input type=button value='Go' onclick='selectedStore(false);'>";
@@ -43,11 +45,15 @@
 	}
 
 	$store = intval($_GET['store']);
-	$result = $db->query("SELECT id FROM stores WHERE uid = $_SESSION[uid] AND id = $store") or die('Database error 264972');
+	$result = $db->query("SELECT id, name FROM stores WHERE uid = $_SESSION[uid] AND id = $store") or die('Database error 264972');
 	if ($result->num_rows == 0) {
 		die('Store does not exist or is not yours.');
 	}
+	$storeName = $result->fetch_row()[1];
 
+	?>
+		<input type=button onclick="location='./';" value='Back to grocery list'><br><br>
+	<?php
 	$result = $db->query("SELECT id FROM stores WHERE uid = $_SESSION[uid] AND id = $store AND layout IS NOT NULL") or die('Database error 165972');
 	if ($result->num_rows == 0) {
 		// New store, upload layout!
@@ -60,8 +66,9 @@
 			$db->query("UPDATE stores SET layout = '$data', layoutdataformatversion=1 WHERE id = $store AND uid = $_SESSION[uid]") or die('Database error 81556');
 		}
 		else {
+			// TODO test confirm() mechanism
 			?>
-				<input type=button onclick="location='./';" value='Back to grocery list'> <input type=button onclick="location='?map&deleteStore=<?php echo $store; ?>';" value="Delete store"><br><br>
+				<input type=button onclick="if(confirm()){location='?map&deleteStore=<?php echo $store; ?>';}" value="Delete store"><br><br>
 				<i>*sniff, sniff*</i> this store smells new! To map the store, you need to upload its general layout. You can even view a <a href="crappy-store-layout-example.png" target="_blank">crappy example</a>.
 				Note that the size you upload, will be the size shown on page. It should be a PNG sketch.
 				<form method=post enctype="multipart/form-data">
@@ -74,7 +81,6 @@
 	}
 
 	if (!isset($_GET['players'])) {
-		echo "<input type=button onclick=\"location='./';\" value='Back to grocery list'><br><br>";
 		if ( ! $noimage) {
 			$result = $db->query("SELECT l.item FROM lists l "
 				. "WHERE l.uid = $_SESSION[uid] AND l.item NOT IN (SELECT item FROM item_store_location isl WHERE isl.uid = $_SESSION[uid] AND isl.store = $store) "
@@ -230,6 +236,16 @@
 				?>
 				<input type=submit value=Save>
 			</form>
+
+			<hr>
+
+			<form method=post action='?map&rename'>
+				<input type=hidden name=store value=<?php echo $store; ?>>
+				<input name=newname value='<?php echo htmlescape($storeName); ?>'>
+				<input type=submit value=Rename>
+			</form>
+
+			<hr>
 
 			<br>
 			<strong>Which items do you buy in this store?</strong>

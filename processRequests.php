@@ -30,6 +30,16 @@ if ($_SESSION['loggedin'] === 'yes') {
 			exit;
 		}
 
+		if (isset($_GET['rename'])) {
+			$store = intval($_POST['store']);
+
+			$newname_escaped = $db->escape_string($_POST['newname']);
+			$db->query("UPDATE stores SET name = '$newname_escaped' WHERE id = $store AND uid = $_SESSION[uid]") or die('Database error 9584948');
+
+			header('Location: ?map&store=' . $store);
+			exit;
+		}
+
 		if (isset($_GET['dontPurchase'])) {
 			$itemstoreid = intval($_GET['dontPurchase']);
 			$db->query("DELETE FROM item_stores WHERE uid = $_SESSION[uid] AND id = $itemstoreid") or die('Database error 6446');
