@@ -6,6 +6,20 @@ if ($_SESSION['loggedin'] === 'yes') {
 		$db->query('DELETE FROM changes WHERE timestamp < ' . (time() - 3600 * 24 * 30)) or die('Database failure 4891');
 	}
 
+	if (isset($_GET['checkItem'])) {
+		// start by printing the item name that this result is valid for
+		header('Content-Type: text/plain');
+		print($_GET['checkItem']);
+
+		$result = $db->query("SELECT item FROM popularitems WHERE uid = $_SESSION[uid] AND item = '" . $db->escape_string($_GET['checkItem']) . "'") or die('Database error 139');
+		if ($result->num_rows > 0) {
+			die('1');
+		}
+		else {
+			die('0');
+		}
+	}
+
 	if (isset($_GET['map'])) {
 		if (isset($_GET['deleteStore'])) {
 			$store = intval($_GET['deleteStore']);

@@ -70,6 +70,17 @@
 			$result = $db->query("SELECT item, amount, unit FROM `recipe-item` WHERE recipeid = $recipeid") or die('Database error 19880');
 			while ($row = $result->fetch_row()) {
 				$item = $db->escape_string($row[0]);
+				$r2 = $db->query("SELECT uid FROM lists WHERE item = '$item' AND uid = $_SESSION[uid]") or die('Database error 1292');
+				if ($r2->num_rows > 0) {
+					$itemname_html = htmlescape($row[0]);
+					die("Cannot add recipe: item '$itemname_html' already on list. We need to implement amount adding!");
+				}
+			}
+			// duplicate code, but this makes it easy to check everything before making any modifications...
+			// Database transactions would be the clean way, but have had hard-to-reproduce deadlock issues on previous servers so I don't feel like re-testing that.
+			$result = $db->query("SELECT item, amount, unit FROM `recipe-item` WHERE recipeid = $recipeid") or die('Database error 19880');
+			while ($row = $result->fetch_row()) {
+				$item = $db->escape_string($row[0]);
 				$amount = intval($row[1]);
 				$unit = $db->escape_string($row[2]);
 				// TODO if grocery is already on the list, add the amounts instead
@@ -102,7 +113,14 @@
 		}
 
 		if ($_POST['action'] == 'Open recipe') {
-			$result = $db->query("SELECT name, instructions FROM recipes WHERE id = $recipeid") or die('Database error 15994');
+			$checkmarkspan = '<span title="This item name has been previously used" onclick="alert(this.title);" style="cursor: pointer;">&checkmark;</span>';
+			$badmarkspan = '<span title="This item name has not been seen before" onclick="alert(this.title);" style="cursor: pointer;">x</span>';
+			$errormarkspan = '<span title="Unexpected server response while checking item name" onclick="alert(this.title);" style="cursor: pointer;">&#x2607;</span>';
+
+			$result = $db->query("SELECT name, instructions FROM recipes WHERE id = $recipeid AND userid = $_SESSION[uid]") or die('Database error 15994');
+			if ($result->num_rows != 1) {
+				die('Either this recipe ID was not found, or this is not your recipe');
+			}
 			list($name, $instructions) = $result->fetch_row();
 			?>
 				<a href="./">Go to grocery list</a> |
@@ -116,14 +134,20 @@
 						echo '<span style="display: inline-block; background-color: #eee;">' . bbcode($instructions) . '</span>';
 
 						echo '<br><br>Items (to delete one, leave the name empty):<br>';
-						$result = $db->query("SELECT item, amount, unit FROM `recipe-item` WHERE recipeid = $recipeid") or die('Database error 22363');
+						// note: $recipeid must be validated (to be our recipe) since `recipe-item` table has no uid field that we can check
+						$result = $db->query("
+							SELECT item, amount, unit, (SELECT COUNT(*) FROM popularitems pi WHERE ri.item = pi.item AND pi.uid = $_SESSION[uid])
+							FROM `recipe-item` ri
+							WHERE recipeid = $recipeid") or die('Database error 22363: ' . $db->error);
 						while ($row = $result->fetch_row()) {
 							echo '<input name="amount[]" type=number placeholder=500 style="width: 70px;" value=' . $row[1] . '> '
 								. '<input name="unit[]" size=4 value="' . htmlescape($row[2]) . '"> '
-								. '<input name="item[]" value="' . htmlescape($row[0]) . '"><br>';
+								. '<input name="item[]" value="' . htmlescape($row[0]) . '" class=itemName>'
+								. '<span class=verifiedMarker>' . ($row[3] > 0 ? $checkmarkspan : '') . '</span><br>';
 						}
 						echo '<input name="amount[]" type=number placeholder=500 style="width: 70px;"> '
-							. '<input name="unit[]" size=4 placeholder=grams> <input placeholder=flour ' . ($autofocus ? 'autofocus' : '') . ' name="item[]">';
+							. '<input name="unit[]" size=4 placeholder=grams> <input placeholder=flour ' . ($autofocus ? 'autofocus' : '') . ' name="item[]" class=itemName>'
+							. '<span class=verifiedMarker></span>';
 					?>
 					<br><br>
 					Edit instructions:<br>
@@ -131,6 +155,33 @@
 					<textarea name=instructions cols=80 rows=20><?php echo htmlescape($instructions); ?></textarea><br>
 					<input type=submit value=Save>
 				</form>
+				<script>
+					let newItemElement = document.querySelector('#newItem');
+					let newItemVerifiedElement = document.querySelector('#newItemVerified');
+					document.querySelectorAll('input.itemName').forEach((el) => {
+						el.onkeyup = function(ev) {
+							let sibling = ev.target.nextSibling;
+							if ( ! sibling.classList.contains('verifiedMarker')) {
+								return;
+							}
+							sibling.innerHTML = '&#x231B;';
+							fetch(`?checkItem=${encodeURIComponent(ev.target.value)}`).then((useless) => {
+								return useless.text();
+							}).then((result) => {
+								// check if the element still contains this text now that the network request returned. Otherwise we're showing a result for a different string...
+								if (result == ev.target.value + '1') {
+									sibling.innerHTML = '<?php echo $checkmarkspan; ?>';
+								}
+								else if (result == ev.target.value + '0') {
+									sibling.innerHTML = '<?php echo $badmarkspan; ?>';
+								}
+								else if (sibling.innerHTML == '&#x231B;') {  // only show an error if there is a loading symbol currently, otherwise a valid response may already have returned
+									sibling.innerHTML = '<?php echo $errormarkspan; ?>';
+								}
+							});
+						};
+					});
+				</script>
 			<?php
 			exit;
 		}
