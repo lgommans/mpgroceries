@@ -15,48 +15,41 @@
 
 <div id=status>&nbsp;</div>
 
-<input type=button value='Clear' onclick='btnClear(this);'>
 <input type=button value='Recipes' onclick='location="?recipes";'>
-	<?php
-		if ($categorized) {
-			echo "<input type=button value='Uncategorize' onclick='location=\"./\";'> ";
+<?php
+	if ( ! isset($_GET['store'])) {
+		$result = $db->query("SELECT id, name FROM stores WHERE uid = $_SESSION[uid] ORDER BY id DESC") or die('Database error 1939195');
+		if ($result->num_rows > 0) {
+			echo '<select id="selectStore"><option value="-1">Sort by...</option>';
+			while ($row = $result->fetch_row()) {
+				$storeId_int = intval($row[0]);
+				$storeName_html = htmlescape($row[1]);
+				echo "<option value=$storeId_int>$storeName_html</option>";
+			}
+			echo '</select>';
+		}
+	}
+	if (isset($_GET['store'])) {
+		if (isset($_GET['categorized'])) {
+			echo "<input type=button value='Cancel categorization' onclick='location=\"./\";'>";
 		}
 		else {
-			echo "<input type=button value='Categorize' onclick='location=\"?categorized\";'> ";
+			echo "<input type=button value='Cancel filtering' onclick='location=\"./\";'>";
 		}
-	?>
+	}
+?>
+<!-- ... whitespace between the previous element and this button ... -->
 <input type=button value='+' id=morebtnsbtn onclick='moreButtons();'>
-<div id=morebtns style='<?php if ( ! $categorized) { echo 'display: none;'; } ?>'>
+<div id=morebtns style='display: none;'>
 	<input type=button value='Manage' onclick='location="?admin";'>
 	<input type=button value='Sync' onclick='refresh();'>
 	<input type=button value='Hard reload' onclick='location.reload();'>
-	<input type=button value='Sort' onclick='location="?map";'>
+	<input type=button value='Store sorting' onclick='location="?map";'>
 	<input type=button value='Combos' onclick='location="?combinations";'>
 	<input type=button value='Logout' onclick='btnLogout();'>
 	<br>
-	<?php
-		if ( ! isset($_GET['store'])) {
-			$result = $db->query("SELECT id, name FROM stores WHERE uid = $_SESSION[uid] ORDER BY id DESC") or die('Database error 1939195');
-			if ($result->num_rows > 0) {
-				$filterorcategorize = 'Filter groceries by store';
-				if ($categorized) {
-					echo '<br><strong>Select store whose category order to use</strong><br>';
-					$filterorcategorize = 'Select store';
-				}
-				echo '<select id="selectStore"><option value="-1">' . $filterorcategorize . '</option>';
-				while ($row = $result->fetch_row()) {
-					echo "<option value=$row[0]>" . htmlescape($row[1]) . '</option>';
-				}
-				echo '</select>';
-			}
-		}
-	?>
 </div>
 <?php
-	if (isset($_GET['store'])) {
-		echo '<input type=button value="Cancel store filtering" onclick="location=\'./\';">';
-	}
-
 	if (isset($_GET['firstuse'])) {
 		?>
 			<br><strong>First time usage info:</strong><br>
@@ -436,7 +429,7 @@
 		$("#selectStore").onchange = function() {
 			var val = $("#selectStore").value;
 			if (val == -1) return;
-			location = '?store=' + val<?php if ($categorized) { echo ' + "&categorized"'; } ?>;
+			location = '?store=' + val + '&categorized';
 		};
 	}
 
@@ -468,7 +461,8 @@
 			$store = intval($_GET['store']);
 			$result = $db->query("SELECT id FROM stores WHERE id = $store AND uid = $_SESSION[uid]") or die('Database error 8148304');
 			if ($result->num_rows == 1) {
-				$storefilter = "AND pi.id IN (SELECT itemid FROM item_stores WHERE uid = $_SESSION[uid] AND storeid = $store)";
+				// TODO disabled filtering mechanism because it just hides most products from most stores. Should probably invert this mechanism, to exclude things not found in certain stores. As for excluding/including categories, people could just sort things at the end and stop reading the list when it becomes irrelevant, TBD.
+				//$storefilter = "AND pi.id IN (SELECT itemid FROM item_stores WHERE uid = $_SESSION[uid] AND storeid = $store)";
 			}
 		}
 		$result = $db->query("SELECT lastid FROM users WHERE id = $_SESSION[uid]") or die('Database error 234920');
@@ -486,7 +480,16 @@
 		$categories = [-1];
 		if ($categorized) {
 			$store = intval($_GET['store']);
-			$result = $db->query("SELECT categoryid FROM categories_stores WHERE uid = $_SESSION[uid] AND storeid = $store ORDER BY priority") or die('Database error 848883');
+			$result = $db->query("
+				SELECT categoryid, priority
+				FROM categories_stores
+				WHERE uid = $_SESSION[uid] AND storeid = $store
+				UNION DISTINCT  -- otherwise, a new category addition will just omit showing any items in that category until the category order list is newly saved for that store
+				SELECT id, 999 AS priority
+				FROM categories
+				WHERE uid = $_SESSION[uid]
+				ORDER BY priority
+			") or die('Database error 848883: ' . $db->error);
 			while ($row = $result->fetch_row()) {
 				$categories[] = $row[0];
 			}
