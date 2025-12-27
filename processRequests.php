@@ -159,6 +159,7 @@ if ($_SESSION['loggedin'] === 'yes') {
 			die('ok');
 
 		case isset($_GET['getPopularItems']):
+			// return all items (no LIMIT), even though there's a display limit, because we use this data for item search.
 			$result = $db->query("SELECT item, categoryid FROM popularitems "
 				. "WHERE uid = $_SESSION[uid] AND item NOT IN (SELECT item FROM lists WHERE uid = $_SESSION[uid]) ORDER BY frequency DESC") or die('Database error 142449');
 			die(json_encode($result->fetch_all(MYSQLI_NUM)));

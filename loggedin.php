@@ -382,8 +382,8 @@
 				var style = 'style="background:' + CSSHSLHash(popularItems[i], 100, 85) + '; margin: 5px;"';
 				html += '<input type=button value="' + escapeHtml(popularItems[i]) + '" ' + style + ' onclick=\'addItem("' + escapeHtml(popularItems[i]) + '", true);\'> ';
 				displayedItemCount++;
-				if (displayedItemCount > 26) {
-					break; // Limit the amount of items.
+				if (displayedItemCount > 67) {
+					break; // Limit the amount of items. Update 2025-12: why? We have all the data and devices are plenty fast. I've 2.5x'd the limit, let's see if I like this better.. ^^
 				}
 			}
 		}
