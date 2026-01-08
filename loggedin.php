@@ -380,7 +380,11 @@
 		for (var i in popularItems) {
 			if (searchKey == '' || popularItems[i].toLowerCase().indexOf(searchKey.toLowerCase()) != -1) {
 				var style = 'style="background:' + CSSHSLHash(popularItems[i], 100, 85) + '; margin: 5px;"';
-				html += '<input type=button value="' + escapeHtml(popularItems[i]) + '" ' + style + ' onclick=\'addItem("' + escapeHtml(popularItems[i]) + '", true);\'> ';
+				let title = '';
+				if (i <= 8) { // 0..8 maps to keys 1..9
+					title = `title="Ctrl+${displayedItemCount + 1}"`;
+				}
+				html += `<input type=button value="${escapeHtml(popularItems[i])}" ${style} onclick='addItem("${escapeHtml(popularItems[i])}", true);' data-displayidx=${displayedItemCount} ${title}> `;
 				displayedItemCount++;
 				if (displayedItemCount > 67) {
 					break; // Limit the amount of items. Update 2025-12: why? We have all the data and devices are plenty fast. I've 2.5x'd the limit, let's see if I like this better.. ^^
@@ -444,6 +448,20 @@
 			addItem(false);
 		}
 		updatePopularItemsDisplay();
+	};
+
+	document.onkeydown = function(ev) {
+		if (ev.ctrlKey && ! isNaN(ev.key)) {
+			let numerickey = parseInt(ev.key);
+			if (numerickey > 0 && numerickey <= 9) {
+				let element = $(`input[type="button"][data-displayidx="${numerickey - 1}"]`);
+				if ( ! element) {
+					alert(`You seem to have fewer than ${numerickey} items in the list.`);
+					return;
+				}
+				element.click();
+			}
+		}
 	};
 
 	req_queue = [];
